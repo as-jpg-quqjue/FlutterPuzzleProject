@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'models/difficulty.dart';
+import 'screens/game_screen.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -36,6 +39,15 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() => _counter++);
   }
 
+  /// Abre la pantalla de juego con la dificultad elegida.
+  void _startGame(Difficulty difficulty) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => GameScreen(difficulty: difficulty),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,8 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
               width: 540,
 
               child: ElevatedButton(
-                onPressed: () =>
-                    setState(() => _appBarColor = Colors.blueAccent),
+                onPressed: () => _startGame(Difficulty.easy),
                 //SE DEFINE UNA VARIABLE EN MYHOMEPAGESTATE Y LA PUEDES CAMBIAR MEDIANTE SETSTATE
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
@@ -69,8 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
               width: 540,
 
               child: ElevatedButton(
-                onPressed: () =>
-                    setState(() => _appBarColor = Colors.blueAccent),
+                onPressed: () => _startGame(Difficulty.medium),
                 //SE DEFINE UNA VARIABLE EN MYHOMEPAGESTATE Y LA PUEDES CAMBIAR MEDIANTE SETSTATE
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
@@ -89,8 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
               width: 540,
 
               child: ElevatedButton(
-                onPressed: () =>
-                    setState(() => _appBarColor = Colors.blueAccent),
+                onPressed: () => _startGame(Difficulty.hard),
                 //SE DEFINE UNA VARIABLE EN MYHOMEPAGESTATE Y LA PUEDES CAMBIAR MEDIANTE SETSTATE
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
