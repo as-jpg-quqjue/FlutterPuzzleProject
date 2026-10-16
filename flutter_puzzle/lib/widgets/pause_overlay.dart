@@ -17,7 +17,7 @@ class PauseOverlay extends StatelessWidget {
     final theme = Theme.of(context);
     return Positioned.fill(
       child: ColoredBox(
-        color: theme.colorScheme.surface.withValues(alpha: 0.97),
+        color: theme.colorScheme.surface,
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,

@@ -54,6 +54,13 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   RecordUpdate? _recordUpdate;
   bool _resultSaved = false;
 
+  /// `true` mientras hay un diálogo de confirmación abierto: la partida
+  /// queda en pausa, pero no se muestra la capa de "Pausa" detrás.
+  bool _confirming = false;
+
+  /// Desplazamiento acumulado del dedo/mouse durante un gesto.
+  Offset _dragDelta = Offset.zero;
+
   @override
   void initState() {
     super.initState();
@@ -120,6 +127,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     required String confirmLabel,
   }) async {
     final wasPlaying = _game.status == GameStatus.playing;
+    setState(() => _confirming = true);
     _game.pause();
     final confirmed = await showDialog<bool>(
       context: context,
@@ -138,6 +146,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         ],
       ),
     );
+    if (mounted) setState(() => _confirming = false);
     if (confirmed != true && wasPlaying) _game.resume();
     return confirmed == true;
   }
@@ -200,15 +209,22 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     return KeyEventResult.handled;
   }
 
+  /// Un deslizamiento cuenta si el dedo recorrió una distancia mínima o
+  /// si se soltó con suficiente velocidad (gesto rápido y corto).
   void _onSwipe(DragEndDetails details) {
+    const minDistance = 24.0;
+    const minSpeed = 300.0;
     final velocity = details.velocity.pixelsPerSecond;
-    const minSpeed = 150.0;
-    if (velocity.distance < minSpeed) return;
+    final movement = _dragDelta.distance >= minDistance
+        ? _dragDelta
+        : (velocity.distance >= minSpeed ? velocity : null);
+    _dragDelta = Offset.zero;
+    if (movement == null) return;
     final MoveDirection direction;
-    if (velocity.dx.abs() > velocity.dy.abs()) {
-      direction = velocity.dx > 0 ? MoveDirection.right : MoveDirection.left;
+    if (movement.dx.abs() > movement.dy.abs()) {
+      direction = movement.dx > 0 ? MoveDirection.right : MoveDirection.left;
     } else {
-      direction = velocity.dy > 0 ? MoveDirection.down : MoveDirection.up;
+      direction = movement.dy > 0 ? MoveDirection.down : MoveDirection.up;
     }
     _game.slide(direction);
   }
@@ -242,7 +258,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                     padding: const EdgeInsets.all(16),
                     child: _buildContent(),
                   ),
-                  if (_game.status == GameStatus.paused)
+                  if (_game.status == GameStatus.paused && !_confirming)
                     PauseOverlay(
                       onResume: _togglePause,
                       onExit: _askExit,
@@ -374,6 +390,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       autofocus: true,
       onKeyEvent: _onKey,
       child: GestureDetector(
+        onPanStart: (_) => _dragDelta = Offset.zero,
+        onPanUpdate: (details) => _dragDelta += details.delta,
         onPanEnd: _game.canPlay ? _onSwipe : null,
         child: PuzzleBoardView(
           board: _game.board,
