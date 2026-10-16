@@ -191,12 +191,17 @@ class _SummaryRow extends StatelessWidget {
         children: [
           Icon(icon, size: 20, color: theme.colorScheme.primary),
           const SizedBox(width: 10),
-          Text(label, style: theme.textTheme.bodyLarge),
-          const Spacer(),
-          Text(
-            value,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.w700,
+          // Flexibles para que el texto se acomode en pantallas angostas
+          // o con letra grande en vez de desbordarse.
+          Expanded(child: Text(label, style: theme.textTheme.bodyLarge)),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],
