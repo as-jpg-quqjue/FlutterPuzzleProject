@@ -44,6 +44,65 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            SizedBox(
+              height: 100,
+              width: 540,
+
+              child: ElevatedButton(
+                onPressed: () =>
+                    setState(() => _appBarColor = Colors.blueAccent),
+                //SE DEFINE UNA VARIABLE EN MYHOMEPAGESTATE Y LA PUEDES CAMBIAR MEDIANTE SETSTATE
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                  ),
+                ), //ASI SE CAMBIA EL COLOR
+                child: const Text(
+                  'Iniciar 3x3',
+                ), //ASI SE DEFINE EL HIJO DEL OBJETO, SIEMPRE SE PONE AL FINAL
+              ),
+            ),
+            const SizedBox(height: 24), //Estos son espacios en blanco entre los botones para que no esten pegados
+            SizedBox(
+              height: 100,
+              width: 540,
+
+              child: ElevatedButton(
+                onPressed: () =>
+                    setState(() => _appBarColor = Colors.blueAccent),
+                //SE DEFINE UNA VARIABLE EN MYHOMEPAGESTATE Y LA PUEDES CAMBIAR MEDIANTE SETSTATE
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                  ),
+                ), //ASI SE CAMBIA EL COLOR
+                child: const Text(
+                  'Iniciar 4x4',
+                ), //ASI SE DEFINE EL HIJO DEL OBJETO, SIEMPRE SE PONE AL FINAL
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              height: 100,
+              width: 540,
+
+              child: ElevatedButton(
+                onPressed: () =>
+                    setState(() => _appBarColor = Colors.blueAccent),
+                //SE DEFINE UNA VARIABLE EN MYHOMEPAGESTATE Y LA PUEDES CAMBIAR MEDIANTE SETSTATE
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                  ),
+                ), //ASI SE CAMBIA EL COLOR
+                child: const Text(
+                  'Iniciar 5x5',
+                ), //ASI SE DEFINE EL HIJO DEL OBJETO, SIEMPRE SE PONE AL FINAL
+              ),
+            ),
             const Text('You have pushed the button this many times:'),
             Text(
               '$_counter',
@@ -59,22 +118,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   [4, 5, 6],
                   [7, 8, 9],
                 ],
-              ),
-            ),
-            SizedBox(
-              height: 500,
-              width: 540,
-
-              child: ElevatedButton(
-                onPressed: () =>
-                    setState(() => _appBarColor = Colors.blueAccent),
-                //SE DEFINE UNA VARIABLE EN MYHOMEPAGESTATE Y LA PUEDES CAMBIAR MEDIANTE SETSTATE
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                ), //ASI SE CAMBIA EL COLOR
-                child: const Text(
-                  'Change',
-                ), //ASI SE DEFINE EL HIJO DEL OBJETO, SIEMPRE SE PONE AL FINAL
               ),
             ),
           ],
