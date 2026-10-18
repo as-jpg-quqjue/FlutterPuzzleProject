@@ -6,10 +6,12 @@ import '../logic/puzzle_board.dart';
 import '../models/difficulty.dart';
 import '../models/tile_style.dart';
 import '../services/score_repository.dart';
+import '../services/settings_repository.dart';
 import '../widgets/game_hud.dart';
 import '../widgets/game_over_overlay.dart';
 import '../widgets/pause_overlay.dart';
 import '../widgets/puzzle_board_view.dart';
+import '../services/score_repository.dart';
 
 /// Pantalla de juego: tablero, contador de movimientos, cronómetro,
 /// pausa, rendición y fin de partida.
@@ -24,6 +26,7 @@ class GameScreen extends StatefulWidget {
     this.animationsEnabled = true,
     this.tileStyle = TileStyle.classic,
     this.scoreRepository,
+    this.settingsRepository,
     this.initialBoard,
   });
 
@@ -34,6 +37,9 @@ class GameScreen extends StatefulWidget {
 
   /// Repositorio de récords; si no se pasa, se usa el de shared_preferences.
   final ScoreRepository? scoreRepository;
+
+  /// Repositorio de configuración; si no se pasa, se usa el de shared_preferences.
+  final SettingsRepository? settingsRepository;
 
   /// Tablero inicial fijo (solo para pruebas).
   @visibleForTesting
@@ -46,7 +52,11 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   late final GameController _game;
   late final ScoreRepository _scores;
+  late final SettingsRepository _settings;
   final FocusNode _boardFocus = FocusNode(debugLabel: 'tablero');
+
+  /// Estilo visual actualmente aplicado a las fichas.
+  late TileStyle _currentTileStyle;
 
   // Estado propio de la pantalla (no del juego): por eso se maneja con
   // setState. El estado del juego vive en GameController y se redibuja
@@ -64,6 +74,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    _currentTileStyle = widget.tileStyle;
     _game = GameController(
       difficulty: widget.difficulty,
       timeLimitEnabled: widget.timeLimitEnabled,
@@ -71,7 +82,24 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     );
     _game.addListener(_onGameChanged);
     _scores = widget.scoreRepository ?? ScoreRepository();
+    _settings = widget.settingsRepository ?? SettingsRepository();
     WidgetsBinding.instance.addObserver(this);
+
+    _loadTileStyle();
+  }
+
+  /// Carga el estilo visual guardado en el almacenamiento local.
+  Future<void> _loadTileStyle() async {
+    try {
+      final savedStyle = await _settings.loadTileStyle();
+      if (mounted) {
+        setState(() {
+          _currentTileStyle = savedStyle;
+        });
+      }
+    } catch (error) {
+      debugPrint('No se pudo cargar el estilo visual: $error');
+    }
   }
 
   @override
@@ -284,7 +312,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     final status = _game.status;
     return AppBar(
       title: Text(
-        '${widget.difficulty.label} · ${widget.difficulty.gridLabel}',
+        '${widget.difficulty.label} ·${widget.difficulty.gridLabel}',
       ),
       actions: [
         if (status == GameStatus.playing || status == GameStatus.paused)
@@ -395,7 +423,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         onPanEnd: _game.canPlay ? _onSwipe : null,
         child: PuzzleBoardView(
           board: _game.board,
-          style: widget.tileStyle,
+          style: _currentTileStyle,
           animate: widget.animationsEnabled,
           enabled: _game.canPlay,
           onTileTap: (index) {

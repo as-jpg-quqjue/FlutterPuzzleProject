@@ -37,8 +37,7 @@ class ScoreRepository {
   static String _keyFor(Difficulty difficulty) =>
       '$_keyPrefix${difficulty.name}';
 
-  /// Marcas de una dificultad, o `null` si todavía no hay ninguna
-  /// (o si los datos guardados están dañados).
+  /// Marcas de una dificultad, o `null` si todavía no hay ninguna.
   Future<HighScore?> load(Difficulty difficulty) async {
     final raw = (await _prefs).getString(_keyFor(difficulty));
     if (raw == null) return null;
@@ -51,7 +50,7 @@ class ScoreRepository {
     }
   }
 
-  /// Marcas de todas las dificultades (para la pantalla de marcadores).
+  /// Marcas de todas las dificultades.
   Future<Map<Difficulty, HighScore?>> loadAll() async {
     return {
       for (final difficulty in Difficulty.values)
@@ -59,8 +58,7 @@ class ScoreRepository {
     };
   }
 
-  /// Registra una partida. Solo las partidas ganadas cuentan para los
-  /// récords; para una derrota devuelve `null` y no guarda nada.
+  /// Registra una partida ganada.
   Future<RecordUpdate?> submit(GameResult result) async {
     if (!result.won) return null;
 

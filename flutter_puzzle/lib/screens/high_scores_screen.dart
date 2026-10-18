@@ -4,6 +4,7 @@ import '../models/difficulty.dart';
 import '../models/high_score.dart';
 import '../services/score_repository.dart';
 import '../widgets/high_score_card.dart';
+import '../services/score_repository.dart';
 
 /// Pantalla de Marcadores / High Scores (Sección 3.3).
 ///
@@ -16,7 +17,7 @@ class HighScoresScreen extends StatefulWidget {
     this.scoreRepository,
   });
 
-  /// Repositorio de récords; si no se pasa, se usa el de shared_preferences.
+  /// Repositorio de récords; si no se pasa, se usa el de shared_preferences..
   final ScoreRepository? scoreRepository;
 
   @override
