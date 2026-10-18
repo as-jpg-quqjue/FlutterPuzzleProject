@@ -14,6 +14,10 @@ void main() {
 
     await tester.pumpWidget(const MyApp());
 
+    // Avanza el tiempo 3 segundos para superar la SplashScreen y completar la transición al menú
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+
     for (final (button, title) in [
       ('Iniciar 3x3', 'Fácil · 3x3'),
       ('Iniciar 4x4', 'Medio · 4x4'),
