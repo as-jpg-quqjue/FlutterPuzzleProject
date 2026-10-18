@@ -14,7 +14,7 @@ void main() {
 
     await tester.pumpWidget(const MyApp());
 
-    // Avanza el tiempo 3 segundos para superar la SplashScreen y completar la transición al menú
+    // Pasa la SplashScreen
     await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();
 
@@ -24,7 +24,11 @@ void main() {
       ('Iniciar 5x5', 'Difícil · 5x5'),
     ]) {
       await tester.tap(find.text(button));
+      
+      // Procesa la navegación y la carga asíncrona de configuraciones
+      await tester.pump();
       await tester.pumpAndSettle();
+      
       expect(find.text(title), findsOneWidget);
 
       await tester.tap(find.byType(BackButton));
