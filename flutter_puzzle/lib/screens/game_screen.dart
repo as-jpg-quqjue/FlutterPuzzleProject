@@ -11,7 +11,6 @@ import '../widgets/game_hud.dart';
 import '../widgets/game_over_overlay.dart';
 import '../widgets/pause_overlay.dart';
 import '../widgets/puzzle_board_view.dart';
-import '../services/score_repository.dart';
 
 /// Pantalla de juego: tablero, contador de movimientos, cronómetro,
 /// pausa, rendición y fin de partida.
