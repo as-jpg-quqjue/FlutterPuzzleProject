@@ -1,0 +1,34 @@
+name: CI
+
+# Revisa el código y corre las pruebas en cada push y pull request.
+on:
+  push:
+    branches: [main, develop, 'feature/**']
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flutter_puzzle
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Versión de Flutter
+        run: flutter --version
+
+      - name: Dependencias
+        run: flutter pub get
+
+      - name: Análisis estático
+        run: flutter analyze --no-fatal-infos
+
+      - name: Pruebas
+        run: flutter test
