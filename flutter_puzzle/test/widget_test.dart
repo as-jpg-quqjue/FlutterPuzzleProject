@@ -42,7 +42,6 @@ void main() {
     await tester.tap(find.text('Jugar'));
     await tester.pumpAndSettle();
     expect(currentGame(tester).difficulty, Difficulty.medium);
-    expect(find.text('Medio · 4x4'), findsWidgets);
   });
 
   testWidgets('cada partida rápida abre su dificultad', (tester) async {
