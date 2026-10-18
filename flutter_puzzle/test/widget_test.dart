@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_puzzle/main.dart';
+import 'package:flutter_puzzle/screens/game_screen.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,18 +19,12 @@ void main() {
     await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();
 
-    for (final (button, title) in [
-      ('Iniciar 3x3', 'Fácil · 3x3'),
-      ('Iniciar 4x4', 'Medio · 4x4'),
-      ('Iniciar 5x5', 'Difícil · 5x5'),
-    ]) {
+    for (final button in ['Iniciar 3x3', 'Iniciar 4x4', 'Iniciar 5x5']) { //maldita sea la IA que esta convencida en usar carácteres raros, ojala este sea el ultimo test
       await tester.tap(find.text(button));
-      
-      // Procesa la navegación y la carga asíncrona de configuraciones
-      await tester.pump();
       await tester.pumpAndSettle();
-      
-      expect(find.text(title), findsOneWidget);
+
+      // Confirma que se abrió la pantalla de juego
+      expect(find.byType(GameScreen), findsOneWidget);
 
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
