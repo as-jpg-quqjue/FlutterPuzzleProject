@@ -7,13 +7,14 @@ import 'screens/instructions_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/splash_screen.dart';
 import 'services/settings_repository.dart';
+import 'widgets/menu_button.dart';
 
 /// Notificador global del tema actual de la app.
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.system);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Carga el tema guardado antes de iniciar la app
   final savedTheme = await SettingsRepository().loadThemeMode();
   themeNotifier.value = savedTheme;
@@ -31,8 +32,9 @@ class MyApp extends StatelessWidget {
       valueListenable: themeNotifier,
       builder: (context, currentThemeMode, _) {
         return MaterialApp(
-          title: 'Juego de Rompecabezas 3x3',
-          
+          title: '15-Puzzle Flutter',
+          debugShowCheckedModeBanner: false,
+
           // 1. Configuración de Tema Claro
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(
@@ -41,7 +43,7 @@ class MyApp extends StatelessWidget {
             ),
             useMaterial3: true,
           ),
-          
+
           // 2. Configuración de Tema Oscuro
           darkTheme: ThemeData(
             colorScheme: ColorScheme.fromSeed(
@@ -50,10 +52,10 @@ class MyApp extends StatelessWidget {
             ),
             useMaterial3: true,
           ),
-          
+
           // 3. Establece el modo activo (system, light o dark)
           themeMode: currentThemeMode,
-          
+
           home: const SplashScreen(),
         );
       },
@@ -61,6 +63,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
+/// Menú principal.
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
@@ -71,24 +74,51 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  /// Abre la pantalla de juego con la dificultad elegida.
-  void _startGame(Difficulty difficulty) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (context) => GameScreen(difficulty: difficulty),
-      ),
-    );
+  final SettingsRepository _settingsRepo = SettingsRepository();
+
+  // Preferencias guardadas: se muestran en el botón "Jugar" y se pasan al
+  // juego. Se recargan al volver de Configuración.
+  GameSettings _settings = const GameSettings();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
   }
-  /// Abre la pantalla de configuración.
-  void _openSettings() {
-    Navigator.of(context).push(
+
+  Future<void> _loadSettings() async {
+    final settings = await _settingsRepo.loadGameSettings();
+    if (!mounted) return;
+    setState(() => _settings = settings);
+  }
+
+  /// Abre la pantalla de juego con las preferencias guardadas. Si no se
+  /// indica [difficulty], usa la dificultad guardada en Configuración.
+  Future<void> _startGame([Difficulty? difficulty]) async {
+    final settings = await _settingsRepo.loadGameSettings();
+    if (!mounted) return;
+    await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (context) => const SettingsScreen(),
+        builder: (context) => GameScreen(
+          difficulty: difficulty ?? settings.difficulty,
+          tileStyle: settings.tileStyle,
+          animationsEnabled: settings.animationsEnabled,
+          timeLimitEnabled: settings.timeLimitEnabled,
+        ),
       ),
     );
   }
 
-  /// Abre la pantalla de marcadores / high scores.
+  /// Abre la configuración y, al volver, recarga las preferencias.
+  Future<void> _openSettings() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => const SettingsScreen(),
+      ),
+    );
+    await _loadSettings();
+  }
+
   void _openHighScores() {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -97,7 +127,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  /// Abre la pantalla de instrucciones.
   void _openInstructions() {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -108,6 +137,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final animate = _settings.animationsEnabled;
+    final difficulty = _settings.difficulty;
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -125,7 +157,10 @@ class _MyHomePageState extends State<MyHomePage> {
               constraints: const BoxConstraints(maxWidth: 580),
               padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
               decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 233, 228, 228).withOpacity(0.85), // Bloque gris semi-oscuro similar al SplashScreen
+                // Bloque claro semitransparente para que el menú se lea
+                // sobre la imagen de fondo.
+                color: const Color.fromARGB(255, 233, 228, 228)
+                    .withValues(alpha: 0.85),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: const [
                   BoxShadow(
@@ -137,11 +172,9 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Título del menú principal
                   Text(
-                    'Flutter Rompecabezas',
+                    widget.title,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
@@ -149,114 +182,63 @@ class _MyHomePageState extends State<MyHomePage> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
-                  SizedBox(
-                    height: 80,
-                    width: double.infinity,
-
-                    child: ElevatedButton(
-                      onPressed: () => _startGame(Difficulty.easy),
-                      //SE DEFINE UNA VARIABLE EN MYHOMEPAGESTATE Y LA PUEDES CAMBIAR MEDIANTE SETSTATE
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                        ),
-                      ), //ASI SE CAMBIA EL COLOR
-                      child: const Text(
-                        'Iniciar 3x3',
-                      ), //ASI SE DEFINE EL HIJO DEL OBJETO, SIEMPRE SE PONE AL FINAL
-                    ),
+                  MenuButton(
+                    label: 'Jugar',
+                    subtitle: '${difficulty.label} · ${difficulty.gridLabel}',
+                    icon: Icons.play_arrow_rounded,
+                    color: Colors.deepPurple,
+                    height: 92,
+                    animate: animate,
+                    onPressed: () => _startGame(),
                   ),
-                  const SizedBox(height: 24), //Estos son espacios en blanco entre los botones para que no esten pegados
-                  SizedBox(
-                    height: 80,
-                    width: double.infinity,
-
-                    child: ElevatedButton(
-                      onPressed: () => _startGame(Difficulty.medium),
-                      //SE DEFINE UNA VARIABLE EN MYHOMEPAGESTATE Y LA PUEDES CAMBIAR MEDIANTE SETSTATE
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Partida rápida',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Colors.black87,
                         ),
-                      ), //ASI SE CAMBIA EL COLOR
-                      child: const Text(
-                        'Iniciar 4x4',
-                      ), //ASI SE DEFINE EL HIJO DEL OBJETO, SIEMPRE SE PONE AL FINAL
-                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      for (final d in Difficulty.values) ...[
+                        if (d != Difficulty.values.first) const SizedBox(width: 12),
+                        Expanded(
+                          child: MenuButton(
+                            label: d.gridLabel,
+                            subtitle: d.label,
+                            height: 60,
+                            index: 1,
+                            animate: animate,
+                            onPressed: () => _startGame(d),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 24),
-                  SizedBox(
-                    height: 80,
-                    width: double.infinity,
-
-                    child: ElevatedButton(
-                      onPressed: () => _startGame(Difficulty.hard),
-                      //SE DEFINE UNA VARIABLE EN MYHOMEPAGESTATE Y LA PUEDES CAMBIAR MEDIANTE SETSTATE
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                        ),
-                      ), //ASI SE CAMBIA EL COLOR
-                      child: const Text(
-                        'Iniciar 5x5',
-                      ), //ASI SE DEFINE EL HIJO DEL OBJETO, SIEMPRE SE PONE AL FINAL
-                    ),
+                  MenuButton(
+                    label: 'Marcadores',
+                    icon: Icons.emoji_events_outlined,
+                    index: 2,
+                    animate: animate,
+                    onPressed: _openHighScores,
                   ),
                   const SizedBox(height: 24),
-                  SizedBox(
-                    height: 80,
-                    width: double.infinity,
-
-                    child: ElevatedButton(
-                      onPressed: _openHighScores,
-                      //SE DEFINE UNA VARIABLE EN MYHOMEPAGESTATE Y LA PUEDES CAMBIAR MEDIANTE SETSTATE
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                        ),
-                      ), //ASI SE CAMBIA EL COLOR
-                      child: const Text(
-                        'Scoreboard',
-                      ), //ASI SE DEFINE EL HIJO DEL OBJETO, SIEMPRE SE PONE AL FINAL
-                    ),
+                  MenuButton(
+                    label: 'Configuración',
+                    icon: Icons.settings_outlined,
+                    index: 3,
+                    animate: animate,
+                    onPressed: _openSettings,
                   ),
                   const SizedBox(height: 24),
-                  SizedBox(
-                    height: 80,
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _openSettings, // <--- Cambiado para abrir SettingsScreen
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                        ),
-                      ),
-                      child: const Text('Configuración'),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    height: 80,
-                    width: double.infinity,
-
-                    child: ElevatedButton(
-                      onPressed: _openInstructions,
-                      //SE DEFINE UNA VARIABLE EN MYHOMEPAGESTATE Y LA PUEDES CAMBIAR MEDIANTE SETSTATE
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                        ),
-                      ), //ASI SE CAMBIA EL COLOR
-                      child: const Text(
-                        'Instrucciones',
-                      ), //ASI SE DEFINE EL HIJO DEL OBJETO, SIEMPRE SE PONE AL FINAL
-                    ),
+                  MenuButton(
+                    label: 'Instrucciones',
+                    icon: Icons.help_outline_rounded,
+                    index: 4,
+                    animate: animate,
+                    onPressed: _openInstructions,
                   ),
                 ],
               ),
@@ -264,48 +246,6 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
       ),
-    );
-  }
-}
-
-// Custom Matrix Grid Widget
-class MatrixGrid extends StatelessWidget {
-  final List<List<int>> matrix;
-
-  const MatrixGrid({super.key, required this.matrix});
-
-  @override
-  Widget build(BuildContext context) {
-    final rows = matrix.length;
-    final cols = matrix[0].length;
-
-    return GridView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: cols,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-      ),
-      itemCount: rows * cols,
-      itemBuilder: (context, index) {
-        final row = index ~/ cols;
-        final col = index % cols;
-
-        return Container(
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: Colors.deepPurple.shade100,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            '${matrix[row][col]}',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.deepPurple.shade900,
-            ),
-          ),
-        );
-      },
     );
   }
 }
