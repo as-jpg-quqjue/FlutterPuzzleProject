@@ -1,0 +1,84 @@
+name: Despliegue web (GitHub Pages + PWA)
+
+# Compila la versión web, verifica que siga siendo una PWA
+# (instalable y que funcione sin conexión) y la publica en GitHub Pages.
+# - En pull requests y ramas feature solo compila y verifica.
+# - Al llegar a main, además publica.
+on:
+  push:
+    branches: [main, 'feature/**']
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Compilar y verificar PWA
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flutter_puzzle
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Dependencias
+        run: flutter pub get
+
+      - name: Pruebas
+        run: flutter test
+
+      - name: Compilar versión web
+        # La página vive en https://<usuario>.github.io/<repositorio>/,
+        # por eso la base es el nombre del repositorio.
+        # --no-web-resources-cdn incluye CanvasKit en el sitio para que
+        # funcione sin conexión.
+        run: >
+          flutter build web --release
+          --base-href "/${{ github.event.repository.name }}/"
+          --no-web-resources-cdn
+
+      - name: Lista de archivos para el modo sin conexión
+        run: python3 tool/inject_precache.py build/web "${{ github.sha }}"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Verificar PWA (manifest, service worker y modo sin conexión)
+        working-directory: flutter_puzzle/tool
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.48.2
+          npx playwright install --with-deps chromium
+          node verify_pwa.mjs ../build/web "${{ github.event.repository.name }}"
+
+      - name: Subir sitio
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: flutter_puzzle/build/web
+
+  deploy:
+    name: Publicar en GitHub Pages
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
