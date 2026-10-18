@@ -1,12 +1,14 @@
 {
-    "name": "flutter_puzzle",
-    "short_name": "flutter_puzzle",
+    "name": "15-Puzzle Flutter",
+    "short_name": "15-Puzzle",
+    "description": "Rompecabezas deslizante (15-Puzzle) hecho en Flutter: 3x3, 4x4 y 5x5, récords y modo sin conexión.",
+    "lang": "es",
     "start_url": ".",
+    "scope": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#1C1B1F",
+    "theme_color": "#673AB7",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

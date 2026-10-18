@@ -1,46 +1,63 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
   <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
+    La base se reemplaza con el valor de --base-href al compilar
+    (en GitHub Pages es /<nombre-del-repositorio>/).
   -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Rompecabezas deslizante (15-Puzzle) hecho en Flutter: 3x3, 4x4 y 5x5, récords y modo sin conexión.">
+  <meta name="theme-color" content="#673AB7">
 
-  <!-- iOS meta tags & icons -->
+  <!-- iOS -->
   <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="flutter_puzzle">
+  <meta name="apple-mobile-web-app-title" content="15-Puzzle">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
-
-  <title>flutter_puzzle</title>
+  <title>15-Puzzle Flutter</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    html, body { margin: 0; height: 100%; background: #1c1b1f; }
+    #loading {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      color: #e6e1e5;
+    }
+    #loading .spinner {
+      width: 44px; height: 44px; border-radius: 50%;
+      border: 4px solid rgba(208, 188, 255, 0.25); border-top-color: #d0bcff;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { #loading .spinner { animation: none; } }
+  </style>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
+  <!-- Se quita cuando Flutter termina de cargar (ver flutter_bootstrap.js). -->
+  <div id="loading" role="status" aria-live="polite">
+    <div class="spinner"></div>
+    <div>Cargando 15-Puzzle…</div>
+  </div>
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
+  <script>
+    // Service worker propio: permite instalar la app y jugar sin conexión.
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js').catch(function (error) {
+          console.warn('No se pudo registrar el service worker:', error);
+        });
+      });
+    }
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
